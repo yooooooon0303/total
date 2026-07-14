@@ -1,1 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>해양 탄소 흡수력 감소 위기 시각화</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; background-color: #f4f7f6; padding: 20px; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #2c3e50; }
+        .warning-text { text-align: center; color: #e74c3c; font-weight: bold; margin-bottom: 30px; }
+        canvas { margin-bottom: 50px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>수온 상승과 해양 탄소 흡수 한계 (위기 상황)</h1>
+        <p class="warning-text">※ 경고: 400ppm 이상은 자연의 탄소 흡수력이 한계에 달한 위험 구간입니다.</p>
+        
+        <!-- 1. 추세 꺾은선 그래프 -->
+        <canvas id="trendChart"></canvas>
+        <!-- 2. 산점도 그래프 -->
+        <canvas id="scatterChart"></canvas>
+    </div>
 
+    <script>
+        async function loadData() {
+            // 실제 배포 시에는 'climate_data.csv'를 사용합니다.
+            // 아래는 테스트를 위해 임시로 배열 데이터를 넣은 부분입니다. (나중에 fetch로 변경 가능)
+            const mockData = [
+                { year: '2000', temp: 15.2, co2: 369.5 },
+                { year: '2005', temp: 15.4, co2: 379.8 },
+                { year: '2010', temp: 15.6, co2: 389.9 },
+                { year: '2015', temp: 15.9, co2: 400.8 },
+                { year: '2020', temp: 16.2, co2: 414.2 },
+                { year: '2023', temp: 16.5, co2: 421.0 }
+            ];
+
+            const years = mockData.map(d => d.year);
+            const temps = mockData.map(d => d.temp);
+            const co2s = mockData.map(d => d.co2);
+
+            // 1. 꺾은선 차트 렌더링
+            new Chart(document.getElementById('trendChart'), {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [
+                        {
+                            label: '해수면 온도 (°C)',
+                            data: temps,
+                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                            yAxisID: 'y',
+                            tension: 0.3
+                        },
+                        {
+                            label: '대기 중 CO2 농도 (ppm) - 위험',
+                            data: co2s,
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.2)',
+                            yAxisID: 'y1',
+                            tension: 0.3,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { type: 'linear', position: 'left', title: { display: true, text: '온도 (°C)' } },
+                        y1: { type: 'linear', position: 'right', title: { display: true, text: 'CO2 (ppm)' }, grid: { drawOnChartArea: false } }
+                    }
+                }
+            });
+
+            // 2. 산점도 차트 렌더링
+            const scatterData = mockData.map(d => ({ x: d.temp, y: d.co2 }));
+            new Chart(document.getElementById('scatterChart'), {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: '온도 vs CO2 농도 (용해도 감소 현상)',
+                        data: scatterData,
+                        backgroundColor: '#8e44ad',
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: { title: { display: true, text: '해수면 온도 (°C)' } },
+                        y: { title: { display: true, text: '대기 중 CO2 농도 (ppm)' } }
+                    }
+                }
+            });
+        }
+        
+        loadData();
+    </script>
+</body>
+</html>
