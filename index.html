@@ -2,100 +2,145 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>해양 탄소 흡수력 감소 위기 시각화</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>해양 탄소 흡수 한계 시각화</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: 'Malgun Gothic', sans-serif; background-color: #f4f7f6; padding: 20px; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #2c3e50; }
-        .warning-text { text-align: center; color: #e74c3c; font-weight: bold; margin-bottom: 30px; }
-        canvas { margin-bottom: 50px; }
+        body { font-family: 'Malgun Gothic', sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #2c3e50; font-size: 24px; margin-bottom: 10px; }
+        .subtitle { text-align: center; color: #7f8c8d; font-size: 16px; margin-bottom: 30px; }
+        .chart-wrapper { margin-bottom: 40px; }
+        .interpretation { background-color: #e8f4f8; padding: 20px; border-radius: 8px; border-left: 5px solid #3498db; margin-top: 30px; }
+        .interpretation h3 { margin-top: 0; color: #2980b9; font-size: 18px; }
+        .interpretation p { margin: 8px 0; line-height: 1.6; font-size: 15px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>수온 상승과 해양 탄소 흡수 한계 (위기 상황)</h1>
-        <p class="warning-text">※ 경고: 400ppm 이상은 자연의 탄소 흡수력이 한계에 달한 위험 구간입니다.</p>
+        <!-- 1. 명확한 탐구 제목 -->
+        <h1>수온 상승과 해양의 탄소 흡수 한계</h1>
+        <div class="subtitle">(울릉도 관측 데이터: 2014-2023)</div>
         
-        <!-- 1. 추세 꺾은선 그래프 -->
-        <canvas id="trendChart"></canvas>
-        <!-- 2. 산점도 그래프 -->
-        <canvas id="scatterChart"></canvas>
+        <div class="chart-wrapper">
+            <canvas id="trendChart"></canvas>
+        </div>
+        
+        <div class="chart-wrapper">
+            <canvas id="scatterChart"></canvas>
+        </div>
+
+        <!-- 2. 모둠 탐구 결론 및 개인 탐구 빌드업 문구 -->
+        <div class="interpretation">
+            <h3>💡 데이터 해석 및 문제 상황 규명</h3>
+            <p><strong>1. 이상 기후의 발현:</strong> 2022년까지 17도 후반을 유지하던 해수면 온도가 2023년에 <strong>19.28°C</strong>로 급상승하며 물리적 임계점을 돌파했습니다.</p>
+            <p><strong>2. 탄소 흡수력 감소 (용해도 감소):</strong> 수온이 급격히 상승함에 따라 대기 중 이산화탄소(CO2) 농도 역시 동기화되어 최고치(425.6ppm)를 기록했습니다. 온도가 상승할수록 기체 분자의 운동 에너지가 커져 기체의 용해도가 감소하는 화학적 평형 이동 원리가 실제 해양 규모의 데이터로 증명됩니다.</p>
+            <p><strong>3. 최종 결론:</strong> 바다가 스스로 흡수할 수 있는 자정 능력(Carbon Sink)은 한계에 다다랐습니다. 자연에만 의존하는 것을 넘어, 대기 중의 잉여 탄소를 포집하고 유용 자원으로 전환하는 <strong>화학공학적 CCU(탄소 포집 및 활용) 공정 기술 도입이 필수적인 상황</strong>입니다.</p>
+        </div>
     </div>
 
     <script>
-        async function loadData() {
-            // 실제 배포 시에는 'climate_data.csv'를 사용합니다.
-            // 아래는 테스트를 위해 임시로 배열 데이터를 넣은 부분입니다. (나중에 fetch로 변경 가능)
-            const mockData = [
-                { year: '2000', temp: 15.2, co2: 369.5 },
-                { year: '2005', temp: 15.4, co2: 379.8 },
-                { year: '2010', temp: 15.6, co2: 389.9 },
-                { year: '2015', temp: 15.9, co2: 400.8 },
-                { year: '2020', temp: 16.2, co2: 414.2 },
-                { year: '2023', temp: 16.5, co2: 421.0 }
-            ];
+        async function loadAndDraw() {
+            try {
+                // CSV 데이터 불러오기
+                const response = await fetch('climate_data.csv');
+                const data = await response.text();
+                
+                const rows = data.trim().split('\n').slice(1);
+                const years = [];
+                const temps = [];
+                const co2s = [];
 
-            const years = mockData.map(d => d.year);
-            const temps = mockData.map(d => d.temp);
-            const co2s = mockData.map(d => d.co2);
+                rows.forEach(row => {
+                    const cols = row.split(',');
+                    if (cols.length === 3) {
+                        years.push(cols[0].trim());
+                        temps.push(parseFloat(cols[1].trim()));
+                        co2s.push(parseFloat(cols[2].trim()));
+                    }
+                });
 
-            // 1. 꺾은선 차트 렌더링
-            new Chart(document.getElementById('trendChart'), {
-                type: 'line',
-                data: {
-                    labels: years,
-                    datasets: [
-                        {
-                            label: '해수면 온도 (°C)',
-                            data: temps,
-                            borderColor: '#3498db',
-                            backgroundColor: 'rgba(52, 152, 219, 0.2)',
-                            yAxisID: 'y',
-                            tension: 0.3
+                // 1. 연도별 수온 및 CO2 농도 변화 (이중 축 선그래프)
+                const ctxTrend = document.getElementById('trendChart').getContext('2d');
+                new Chart(ctxTrend, {
+                    type: 'line',
+                    data: {
+                        labels: years,
+                        datasets: [
+                            {
+                                label: '울릉도 해수면 온도 (°C)',
+                                data: temps,
+                                borderColor: '#3498db',
+                                backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                                yAxisID: 'yTemp',
+                                tension: 0.3,
+                                // 2023년(19도 이상) 데이터 포인트를 빨간색으로 크고 강렬하게 강조
+                                pointBackgroundColor: temps.map(t => t > 19 ? '#e74c3c' : '#3498db'),
+                                pointRadius: temps.map(t => t > 19 ? 8 : 4)
+                            },
+                            {
+                                label: '울릉도 대기 중 CO2 농도 (ppm)',
+                                data: co2s,
+                                borderColor: '#e74c3c',
+                                backgroundColor: 'rgba(231, 76, 60, 0.2)',
+                                yAxisID: 'yCO2',
+                                tension: 0.3,
+                                fill: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: { display: true, text: '연도별 해수면 온도 및 CO2 농도 추이', font: { size: 16 } }
                         },
-                        {
-                            label: '대기 중 CO2 농도 (ppm) - 위험',
-                            data: co2s,
-                            borderColor: '#e74c3c',
-                            backgroundColor: 'rgba(231, 76, 60, 0.2)',
-                            yAxisID: 'y1',
-                            tension: 0.3,
-                            fill: true
+                        scales: {
+                            yTemp: {
+                                type: 'linear',
+                                position: 'left',
+                                title: { display: true, text: '해수면 온도 (°C)' }
+                            },
+                            yCO2: {
+                                type: 'linear',
+                                position: 'right',
+                                title: { display: true, text: 'CO2 농도 (ppm)' },
+                                grid: { drawOnChartArea: false }
+                            }
                         }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: { type: 'linear', position: 'left', title: { display: true, text: '온도 (°C)' } },
-                        y1: { type: 'linear', position: 'right', title: { display: true, text: 'CO2 (ppm)' }, grid: { drawOnChartArea: false } }
                     }
-                }
-            });
+                });
 
-            // 2. 산점도 차트 렌더링
-            const scatterData = mockData.map(d => ({ x: d.temp, y: d.co2 }));
-            new Chart(document.getElementById('scatterChart'), {
-                type: 'scatter',
-                data: {
-                    datasets: [{
-                        label: '온도 vs CO2 농도 (용해도 감소 현상)',
-                        data: scatterData,
-                        backgroundColor: '#8e44ad',
-                        pointRadius: 6
-                    }]
-                },
-                options: {
-                    scales: {
-                        x: { title: { display: true, text: '해수면 온도 (°C)' } },
-                        y: { title: { display: true, text: '대기 중 CO2 농도 (ppm)' } }
+                // 2. 수온과 CO2 농도의 상관관계 (산점도)
+                const scatterData = temps.map((temp, index) => ({ x: temp, y: co2s[index] }));
+                const ctxScatter = document.getElementById('scatterChart').getContext('2d');
+                new Chart(ctxScatter, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: '수온 vs CO2 농도',
+                            data: scatterData,
+                            // 마찬가지로 2023년 데이터 포인트를 붉은색으로 강조
+                            backgroundColor: temps.map(t => t > 19 ? '#e74c3c' : '#8e44ad'),
+                            pointRadius: temps.map(t => t > 19 ? 8 : 6)
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: { display: true, text: '수온 상승에 따른 CO2 농도 변화 (용해도 감소 현상)', font: { size: 16 } }
+                        },
+                        scales: {
+                            x: { title: { display: true, text: '해수면 온도 (°C)' } },
+                            y: { title: { display: true, text: '대기 중 CO2 농도 (ppm)' } }
+                        }
                     }
-                }
-            });
+                });
+            } catch (error) {
+                console.error("데이터를 불러오지 못했습니다. climate_data.csv 파일이 올바르게 업로드되었는지 확인해주세요.", error);
+            }
         }
-        
-        loadData();
+
+        loadAndDraw();
     </script>
 </body>
 </html>
