@@ -18,7 +18,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- 1. 명확한 탐구 제목 -->
         <h1>수온 상승과 해양의 탄소 흡수 한계</h1>
         <div class="subtitle">(울릉도 관측 데이터: 2014-2023)</div>
         
@@ -30,19 +29,17 @@
             <canvas id="scatterChart"></canvas>
         </div>
 
-        <!-- 2. 모둠 탐구 결론 및 개인 탐구 빌드업 문구 -->
         <div class="interpretation">
             <h3>💡 데이터 해석 및 문제 상황 규명</h3>
             <p><strong>1. 이상 기후의 발현:</strong> 2022년까지 17도 후반을 유지하던 해수면 온도가 2023년에 <strong>19.28°C</strong>로 급상승하며 물리적 임계점을 돌파했습니다.</p>
             <p><strong>2. 탄소 흡수력 감소 (용해도 감소):</strong> 수온이 급격히 상승함에 따라 대기 중 이산화탄소(CO2) 농도 역시 동기화되어 최고치(425.6ppm)를 기록했습니다. 온도가 상승할수록 기체 분자의 운동 에너지가 커져 기체의 용해도가 감소하는 화학적 평형 이동 원리가 실제 해양 규모의 데이터로 증명됩니다.</p>
-            <p><strong>3. 최종 결론:</strong> 바다가 스스로 흡수할 수 있는 자정 능력(Carbon Sink)은 한계에 다다랐습니다. 자연에만 의존하는 것을 넘어, 대기 중의 잉여 탄소를 포집하고 유용 자원으로 전환하는 <strong>화학공학적 CCU(탄소 포집 및 활용) 공정 기술 도입이 필수적인 상황</strong>입니다.</p>
+            <p><strong>3. 최종 결론:</strong> 바다가 스스로 대기 중의 탄소를 흡수하는 자정 능력(Carbon Sink)은 물리화학적 한계에 다다랐습니다. 따라서 수온 상승으로 인해 감소해 버린 해양의 기체 용해도를 보완하고, 갈곳을 잃은 잉여 탄소 문제를 해결할 수 있는 적극적이고 새로운 공학적 대안 마련이 시급한 상황입니다.</p>
         </div>
     </div>
 
     <script>
         async function loadAndDraw() {
             try {
-                // CSV 데이터 불러오기
                 const response = await fetch('climate_data.csv');
                 const data = await response.text();
                 
@@ -60,7 +57,6 @@
                     }
                 });
 
-                // 1. 연도별 수온 및 CO2 농도 변화 (이중 축 선그래프)
                 const ctxTrend = document.getElementById('trendChart').getContext('2d');
                 new Chart(ctxTrend, {
                     type: 'line',
@@ -74,7 +70,6 @@
                                 backgroundColor: 'rgba(52, 152, 219, 0.2)',
                                 yAxisID: 'yTemp',
                                 tension: 0.3,
-                                // 2023년(19도 이상) 데이터 포인트를 빨간색으로 크고 강렬하게 강조
                                 pointBackgroundColor: temps.map(t => t > 19 ? '#e74c3c' : '#3498db'),
                                 pointRadius: temps.map(t => t > 19 ? 8 : 4)
                             },
@@ -110,7 +105,6 @@
                     }
                 });
 
-                // 2. 수온과 CO2 농도의 상관관계 (산점도)
                 const scatterData = temps.map((temp, index) => ({ x: temp, y: co2s[index] }));
                 const ctxScatter = document.getElementById('scatterChart').getContext('2d');
                 new Chart(ctxScatter, {
@@ -119,7 +113,6 @@
                         datasets: [{
                             label: '수온 vs CO2 농도',
                             data: scatterData,
-                            // 마찬가지로 2023년 데이터 포인트를 붉은색으로 강조
                             backgroundColor: temps.map(t => t > 19 ? '#e74c3c' : '#8e44ad'),
                             pointRadius: temps.map(t => t > 19 ? 8 : 6)
                         }]
